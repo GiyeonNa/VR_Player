@@ -9,6 +9,7 @@ namespace Gestures
         private bool isReady;
         [SerializeField] Transform spellPoint;
         [SerializeField] ParticleSystem spellReadyParticle;
+        public GameObject preView;
         public GameObject preViewObject;
         public bool isPreview; 
         public GameObject fireball;
@@ -17,11 +18,18 @@ namespace Gestures
         [SerializeField] string spellName;
         public float range = 10f;
         private RaycastHit hit;
+        public OVRInput.Controller controllerType;
+        public OVRInput.Button fireActiveButton;
 
+        float iceammo;
         private void Update()
         {
-            CastSpell(spellName);
+            
             if(isPreview) PreviewPosUpdate();
+            if (isReady)
+            {
+                if(OVRInput.GetDown(fireActiveButton, controllerType)) CastSpell(spellName);
+            }
         }
 
         public void CastSpell(GestureMetaData data)
@@ -29,14 +37,20 @@ namespace Gestures
             switch (data.name)
             {
                 case "Square":
-                    LightingReady();
+                    FireBallReady();
                     spellName = data.name;
                     break;
 
                 case "Triangle":
+                    IceReady();
+                    spellName = data.name;
                     break;
+
                 case "Circle":
+                    LightingReady();
+                    spellName = data.name;
                     break;
+
                 case "Heart":
                     break;
                 case "S":
@@ -59,46 +73,62 @@ namespace Gestures
             //if(Input.GetKeyUp(KeyCode.Escape))
         }
 
+        public void IceReady()
+        {
+            isReady = true;
+            spellReadyParticle.Play();
+            iceammo = 10;
+            //if(Input.GetKeyUp(KeyCode.Escape))
+        }
+
         public void LightingReady()
         {
             isReady = true;
             isPreview = true;
             spellReadyParticle.Play();
             //미리보기를 만듬과 동시에 위치가 변해야함
-            preViewObject = Instantiate(preViewObject, spellPoint.position + spellPoint.forward, Quaternion.identity);
+            preViewObject = Instantiate(preView, spellPoint.position + spellPoint.forward, Quaternion.identity);
         }
 
         public void CastSpell(string spellname)
         {
             if (!isReady) return;
-            //번개 테스트
-            if(spellName == "Square")
+
+            if (spellName == "Square")
             {
-                if (Input.GetKeyDown(KeyCode.Space))
+                isReady = false;
+                spellReadyParticle.Stop();
+                Instantiate(fireball, spellPoint.position + new Vector3(0, 0, 1), spellPoint.rotation);
+            }
+
+            if (spellName == "Triangle")
+            {
+                Instantiate(ice, spellPoint.position + new Vector3(0, 0, 1), spellPoint.rotation);
+                iceammo -= 1;
+                if(iceammo == 0)
                 {
-                    Instantiate(lighting, hit.point, preViewObject.transform.rotation);
-                    Destroy(preViewObject);
                     isReady = false;
                     spellReadyParticle.Stop();
-                    isPreview = false;
-                }
+                }         
             }
-            //if(spellName == "Square")
-            //{
-            //    if (Input.GetKeyDown(KeyCode.Space))
-            //    {
-            //        Instantiate(fireball, spellPoint.position + new Vector3(0, 0, 1), spellPoint.rotation);
-            //    }
-            //}
-            //if (Input.GetKeyDown(KeyCode.Space))
-            //{
 
-            //    Debug.Log(spellname);
-            //    //어떻게 각 마법을 구분하ㅡㄴ가?
-            //    isReady = false;
-            //    spellReadyParticle.Stop();
-            //    Instantiate(fireball, spellPoint.position + new Vector3(0,0,2), spellPoint.rotation);
-            //}
+            //번개 테스트
+            if (spellName == "Circle")
+            {
+                //if (Input.GetKeyDown(KeyCode.Space))
+                //{
+                //    Instantiate(lighting, hit.point, preViewObject.transform.rotation);
+                //    Destroy(preViewObject);
+                //    isReady = false;
+                //    spellReadyParticle.Stop();
+                //    isPreview = false;
+                //}
+                Instantiate(lighting, hit.point, preViewObject.transform.rotation);
+                Destroy(preViewObject);
+                isReady = false;
+                spellReadyParticle.Stop();
+                isPreview = false;
+            }
         }
 
         private void PreviewPosUpdate()
