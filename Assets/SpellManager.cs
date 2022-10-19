@@ -22,6 +22,7 @@ namespace Gestures
         public OVRInput.Button fireActiveButton;
 
         float iceammo;
+        [SerializeField] private LayerMask layerMask;
         private void Update()
         {
             
@@ -99,12 +100,12 @@ namespace Gestures
             {
                 isReady = false;
                 spellReadyParticle.Stop();
-                Instantiate(fireball, spellPoint.position + new Vector3(0, 0, 1), spellPoint.rotation);
+                Instantiate(fireball, spellPoint.position + spellPoint.forward, spellPoint.rotation);
             }
 
             if (spellName == "Triangle")
             {
-                Instantiate(ice, spellPoint.position + new Vector3(0, 0, 1), spellPoint.rotation);
+                Instantiate(ice, spellPoint.position + spellPoint.forward, spellPoint.rotation);
                 iceammo -= 1;
                 if(iceammo == 0)
                 {
@@ -135,7 +136,7 @@ namespace Gestures
         private void PreviewPosUpdate()
         {
             
-            if (Physics.Raycast(spellPoint.position, spellPoint.forward, out hit, range))
+            if (Physics.Raycast(spellPoint.position, spellPoint.forward, out hit, range, layerMask))
             {
                 if (hit.transform != null)
                 {
@@ -143,6 +144,12 @@ namespace Gestures
                     preViewObject.transform.position = location;
                 }
             }
+        }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(spellPoint.position, spellPoint.forward);
         }
 
 
