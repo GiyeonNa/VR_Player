@@ -44,6 +44,7 @@ namespace Gestures
                 case "Triangle":
                     IceReady();
                     spellName = data.name;
+                    
                     break;
 
                 case "Circle":
