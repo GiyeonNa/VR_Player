@@ -40,6 +40,9 @@ namespace Oculus.Interaction
         [SerializeField]
         private ControllerButtonUsage _controllerButtonUsage;
 
+        //[SerializeField]
+        //private OVRInput.Button Button;
+
         [SerializeField]
         private ControllerSelectorLogicOperator _requireButtonUsages =
             ControllerSelectorLogicOperator.Any;
