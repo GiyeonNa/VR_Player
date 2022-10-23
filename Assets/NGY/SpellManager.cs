@@ -8,10 +8,11 @@ namespace Gestures
     {
         private bool isReady;
         [SerializeField] Transform spellPoint;
-        [SerializeField] ParticleSystem spellReadyParticle;
+        public ParticleSystem[] spellReadyParticles;
+        private ParticleSystem curParticle;
         public GameObject preView;
         public GameObject preViewObject;
-        public bool isPreview; 
+        public bool isPreview;
         public GameObject fireball;
         public GameObject ice;
         public GameObject lighting;
@@ -23,13 +24,23 @@ namespace Gestures
 
         float iceammo;
         [SerializeField] private LayerMask layerMask;
+
+        [SerializeField] private AudioSource audioSource;
+        [SerializeField] private AudioClip[] spellReadySounds;
+        [SerializeField] private AudioClip[] spellFireSounds;
+
+        private void Awake()
+        {
+            audioSource = GetComponent<AudioSource>();
+        }
+
         private void Update()
         {
-            
-            if(isPreview) PreviewPosUpdate();
+
+            if (isPreview) PreviewPosUpdate();
             if (isReady)
             {
-                if(OVRInput.GetDown(fireActiveButton, controllerType)) CastSpell(spellName);
+                if (OVRInput.GetDown(fireActiveButton, controllerType)) CastSpell(spellName);
             }
         }
 
@@ -45,7 +56,7 @@ namespace Gestures
                 case "Triangle":
                     IceReady();
                     spellName = data.name;
-                    
+
                     break;
 
                 case "Circle":
@@ -67,27 +78,31 @@ namespace Gestures
 
         public void FireBallReady()
         {
-            //장전식
-            //조준선이 나오는게 좋아보임
-            //이펙트 나오면 준비를 보여줌
+            curParticle = spellReadyParticles[0];
             isReady = true;
-            spellReadyParticle.Play();
+            audioSource.clip = spellReadySounds[0];
+            audioSource.Play();
+            curParticle.Play();
             //if(Input.GetKeyUp(KeyCode.Escape))
         }
 
         public void IceReady()
         {
+            curParticle = spellReadyParticles[1];
             isReady = true;
-            spellReadyParticle.Play();
+            audioSource.clip = spellReadySounds[1];
+            audioSource.Play();
+            curParticle.Play();
             iceammo = 10;
             //if(Input.GetKeyUp(KeyCode.Escape))
         }
 
         public void LightingReady()
         {
+            curParticle = spellReadyParticles[2];
             isReady = true;
             isPreview = true;
-            spellReadyParticle.Play();
+            curParticle.Play();
             //미리보기를 만듬과 동시에 위치가 변해야함
             preViewObject = Instantiate(preView, spellPoint.position + spellPoint.forward, Quaternion.identity);
         }
@@ -99,7 +114,8 @@ namespace Gestures
             if (spellName == "Square")
             {
                 isReady = false;
-                spellReadyParticle.Stop();
+                curParticle.Stop();
+                audioSource.Pause();
                 Instantiate(fireball, spellPoint.position + spellPoint.forward, spellPoint.rotation);
             }
 
@@ -107,35 +123,28 @@ namespace Gestures
             {
                 Instantiate(ice, spellPoint.position + spellPoint.forward, spellPoint.rotation);
                 iceammo -= 1;
-                if(iceammo == 0)
+                if (iceammo == 0)
                 {
                     isReady = false;
-                    spellReadyParticle.Stop();
-                }         
+                    curParticle.Stop();
+                    audioSource.Pause();
+                }
             }
 
             //번개 테스트
             if (spellName == "Circle")
             {
-                //if (Input.GetKeyDown(KeyCode.Space))
-                //{
-                //    Instantiate(lighting, hit.point, preViewObject.transform.rotation);
-                //    Destroy(preViewObject);
-                //    isReady = false;
-                //    spellReadyParticle.Stop();
-                //    isPreview = false;
-                //}
                 Instantiate(lighting, hit.point, preViewObject.transform.rotation);
                 Destroy(preViewObject);
                 isReady = false;
-                spellReadyParticle.Stop();
+                curParticle.Stop();
                 isPreview = false;
             }
         }
 
         private void PreviewPosUpdate()
         {
-            
+
             if (Physics.Raycast(spellPoint.position, spellPoint.forward, out hit, range, layerMask))
             {
                 if (hit.transform != null)
@@ -155,6 +164,6 @@ namespace Gestures
 
     }
 
-    
+
 
 }
